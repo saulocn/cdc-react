@@ -3,7 +3,7 @@ import $ from 'jquery';
 import InputCustomizado from './componentes/InputCustomizado.js';
 import BotaoSubmitCustomizado from './componentes/BotaoSubmitCustomizado.js';
 
-export class FormularioAutor extends Component {
+class FormularioAutor extends Component {
 
 
 
@@ -49,7 +49,7 @@ enviaForm(evento){
     data:JSON.stringify({nome:this.state.nome,email:this.state.email, senha:this.state.senha}),
     success:function(resposta){
       console.log("Enviado com sucesso!");
-      this.setState({lista:resposta})
+      this.props.callbackAtualizaListagem(resposta);
     }.bind(this),
     error:function(resposta){
       console.log(resposta);
@@ -58,9 +58,9 @@ enviaForm(evento){
   });
 }
 
-	render() {
-		return (
-			 <div className="pure-form pure-form-aligned">
+  render() {
+    return (
+       <div className="pure-form pure-form-aligned">
                 <form className="pure-form pure-form-aligned" onSubmit={this.enviaForm} method="post">
 
                   <InputCustomizado id="nome" type="text" label="Nome" name="nome" value={this.state.nome} onChange={this.setNome} />
@@ -71,42 +71,16 @@ enviaForm(evento){
 
               </div>  
 
-			);
-	}
-}
-
-export class TabelaAutores extends Component {
-
-	 constructor(){
-    super();
-    this.state = {
-      lista:[/*   {
-        nome:'Saulo',
-        email:'saulocn@gmail.com',
-        senha:'123456',
-      }*/],
-    };
-
-
+      );
   }
-
-
-  // para subir a aplicação, deve se executar o comando
-// java  -Dspring.datasource.password=<senha do root do mysql> -jar cdcreact-1.0.0.jar
-componentWillMount(){
-  console.log("componentWillMount");
-  $.ajax({
-    url: 'http://localhost:8080/api/autores',
-    dataType: 'json',
-    success:function(res){
-        this.setState({lista:res});
-    }.bind(this)
-  })
 }
 
-	render(){
-		return (
-			<div>            
+class TabelaAutores extends Component {
+
+
+  render(){
+    return (
+      <div>            
                 <table className="pure-table">
                   <thead>
                     <tr>
@@ -116,7 +90,7 @@ componentWillMount(){
                   </thead>
                   <tbody>
                     { 
-                      this.state.lista.map(function(autor){
+                      this.props.lista.map(function(autor){
                         return (
                           <tr key={autor.id}>
                             <td>{autor.nome}</td>
@@ -130,7 +104,46 @@ componentWillMount(){
               </div>          
 
 
-			);
+      );
 
-	}
+  }
+}
+export default class AutorBox extends Component {
+
+// para subir a aplicação, deve se executar o comando
+// java  -Dspring.datasource.password=<senha do root do mysql> -jar cdcreact-1.0.0.jar
+componentWillMount(){
+  console.log("componentWillMount");
+  $.ajax({
+    url: 'http://localhost:8080/api/autores',
+    dataType: 'json',
+    success:function(res){
+        this.setState({lista:res});
+    }.bind(this)
+  })
+}
+
+
+   constructor(){
+    super();
+    this.state = {
+      lista:[],
+    };
+    this.atualizaListagem = this.atualizaListagem.bind(this);
+
+
+  }
+
+  atualizaListagem(novaLista){
+    this.setState({lista:novaLista});
+  }
+
+  render (){
+    return (
+      <div>
+        <FormularioAutor callbackAtualizaListagem={this.atualizaListagem} />
+          <TabelaAutores lista={this.state.lista} />
+        </div>
+      );
+  }
 }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import './css/pure-min.css';
 import './css/side-menu.css';
-import {FormularioAutor, TabelaAutores} from './Autor';
+import AutorBox from './Autor';
 
 class App extends Component {
 
@@ -39,8 +39,7 @@ componentDidMount(){
             <div className="content" id="content">
 
 
-              <FormularioAutor />
-              <TabelaAutores />
+              <AutorBox />
              
                  
             </div>
