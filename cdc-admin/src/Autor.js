@@ -25,19 +25,13 @@ class FormularioAutor extends Component {
 
   }
 
+  salvaAlteracao(nomeInput, evento){
+    var campo = {};
+    campo[nomeInput] = evento.target.value;
+    this.setState(campo)
 
-
-  setNome(evento){
-    this.setState({nome:evento.target.value});
   }
 
-  setEmail(evento){
-    this.setState({email:evento.target.value});
-  }
-
-  setSenha(evento){
-    this.setState({senha:evento.target.value});
-  }
 
   // sintatic event do React e não evento do DOM
 enviaForm(evento){
