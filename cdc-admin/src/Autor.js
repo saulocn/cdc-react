@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import $ from 'jquery';
 import InputCustomizado from './componentes/InputCustomizado.js';
 import BotaoSubmitCustomizado from './componentes/BotaoSubmitCustomizado.js';
+import PubSub from "pubsub-js"
+import TratadorErros from './TratadorErros';
 
 class FormularioAutor extends Component {
 
@@ -47,13 +49,28 @@ enviaForm(evento){
     dataType:'json',
     type:'post',
     data:JSON.stringify({nome:this.state.nome,email:this.state.email, senha:this.state.senha}),
-    success:function(resposta){
+    success:function(novaListagem){
       console.log("Enviado com sucesso!");
-      this.props.callbackAtualizaListagem(resposta);
-    }.bind(this),
+      // disparar aviso geral de nova listagem disponível
+      //publish e subscriber
+
+      PubSub.publish('atualiza-lista-autores',novaListagem);
+      this.setState({nome:'', email:'', senha:''});
+
+    }.bind(this)
+    // Não precisa mais do bind() pois, com o PubSub, não precisa mais do React neste ponto;
+    ,
     error:function(resposta){
-      console.log(resposta);
-      console.log("Deu erro");
+      if(resposta.status===400){
+        // recuperar quais foram os erros
+        // e exibir a mensagem de erro no campo
+        new TratadorErros().publicaErros(resposta.responseJSON);
+      }
+      //console.log(resposta);
+      //console.log("Deu erro");
+    },
+    beforeSend: function() {
+      PubSub.publish('limpa-erros', {});
     }
   });
 }
@@ -121,6 +138,9 @@ componentWillMount(){
         this.setState({lista:res});
     }.bind(this)
   })
+  PubSub.subscribe('atualiza-lista-autores', function(topico, novaListagem){
+    this.setState({lista:novaListagem});
+  }.bind(this));
 }
 
 
@@ -129,21 +149,23 @@ componentWillMount(){
     this.state = {
       lista:[],
     };
-    this.atualizaListagem = this.atualizaListagem.bind(this);
+   
 
 
-  }
-
-  atualizaListagem(novaLista){
-    this.setState({lista:novaLista});
   }
 
   render (){
     return (
-      <div>
-        <FormularioAutor callbackAtualizaListagem={this.atualizaListagem} />
-          <TabelaAutores lista={this.state.lista} />
-        </div>
+       <div>
+      <div className="header">
+          <h1>Cadastro de Autores</h1>
+      </div>
+      <div className="content" id="content">
+        <FormularioAutor  />
+        <TabelaAutores lista={this.state.lista} />
+              
+      </div>
+      </div>
       );
   }
 }
